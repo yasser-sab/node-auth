@@ -1,8 +1,10 @@
 const express = require('express');
 const volleyball = require('volleyball');
+require('dotenv').config();
 // if the file inside directory called index then you can just called the dirrectory that contain it
 // const auth = require('./auth/index.js');
 const auth = require('./auth');
+const cors = require('cors');
 
 const app = express();
 
@@ -10,6 +12,10 @@ app.use(volleyball);
 
 // build in body parser
 app.use(express.json())
+
+app.use(cors({
+    origin:'http://localhost:8080'
+}));
 
 app.get('/',(req,res)=>{
     res.json({
@@ -38,5 +44,5 @@ app.use(notFound);
 app.use(errorHandler);
 
 app.listen('5000',()=>{
-    console.log('you are logged in yasser!');
+    console.log('we are listning');
 });
