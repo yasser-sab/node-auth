@@ -18,11 +18,33 @@ const schema =  joi.object().keys({
     password:joi.string().min(6).trim().required()
 });
 
-router.get('/',(req,res)=>{
-    res.json({
-        message:'hello yasser !'
+
+function createToken(user,res,next){
+    const payload={
+        _id:user._id,
+        username:user.username
+    };
+    jwt.sign(payload,process.env.TOKEN_SECRET,{
+        expiresIn:"1d"
+    },(err,token)=>{
+        if(err){
+            res.status(400);
+            const error=new Error("username or password invalid !!");
+            next(error);
+        }else{
+            res.json({
+                token:token
+            });
+        }
+
     });
-});
+}
+
+function sendBackError(statusCode,message,res,next){
+    res.status(statusCode);
+    const error=new Error(message);
+    next(error);
+}
 
 router.post('/signup',(req,res,next)=>{
     const result = schema.validate(req.body);
@@ -31,9 +53,7 @@ router.post('/signup',(req,res,next)=>{
             username:req.body.username
         }).then((user)=>{
             if(user){
-                const error=new Error('user already exist !!');
-                res.status(409);
-                next(error);
+                sendBackError(409,'user already exist !!',res,next);
             }else{
                 bcrypt.hash(req.body.password,12).then(hashed=>{
                     const newUser = {
@@ -41,15 +61,13 @@ router.post('/signup',(req,res,next)=>{
                         password:hashed
                     };
                     users.insert(newUser).then(inserted=>{
-                        delete inserted.password;
-                        res.json(inserted);
+                        createToken(inserted,res,next);
                     });
                 });
             }
         });
     }else{
-        res.status(406);
-        next(res.error);
+        sendBackError(406,'error !!',res,next);
     }
 });
 
@@ -62,40 +80,17 @@ router.post('/login',(req,res,next)=>{
             if(user){
                 bcrypt.compare(req.body.password,user.password).then(result=>{
                     if(result){
-                        const payload={
-                            _id:user._id,
-                            username:user.username
-                        };
-                        jwt.sign(payload,process.env.TOKEN_SECRET,{
-                            expiresIn:"1d"
-                        },(err,token)=>{
-                            if(err){
-                                res.status(400);
-                                const error=new Error("username or password invalid !!");
-                                next(error);
-                            }else{
-                                res.json({
-                                    token:token
-                                });
-                            }
-
-                        });
+                        createToken(user,res,next);
                     }else{
-                        res.status(400);
-                        const error=new Error("username or password invalid !!");
-                        next(error);
+                        sendBackError(400,"username or password invalid !!",res,next);
                     }
                 });
             }else{
-                res.status(400);
-                const error=new Error("username or password invalid !!");
-                next(error);
+                sendBackError(400,"username or password invalid !!",res,next);
             }
         });
     }else{
-        res.status(400);
-        const error=new Error("username or password invalid !!");
-        next(error);
+        sendBackError(400,"username or password invalid !!",res,next);
     }
 
 });

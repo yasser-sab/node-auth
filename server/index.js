@@ -3,7 +3,9 @@ const volleyball = require('volleyball');
 require('dotenv').config();
 // if the file inside directory called index then you can just called the dirrectory that contain it
 // const auth = require('./auth/index.js');
+const middlewares = require('./auth/middlewares');
 const auth = require('./auth');
+
 const cors = require('cors');
 
 const app = express();
@@ -17,9 +19,12 @@ app.use(cors({
     origin:'http://localhost:8080'
 }));
 
+app.use(middlewares.checkToken);
+
 app.get('/',(req,res)=>{
     res.json({
-        message:'hello world !'
+        message:'hello world!',
+        user:req.user
     });
 });
 

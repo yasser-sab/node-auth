@@ -84,12 +84,13 @@
                                throw new Error(err.message);
                            });
                        }
-                   }).then(user=>{
-                       console.log(user);
+                   }).then(result=>{
+                       console.log(result);
+                       localStorage.token=result.token;
                         setTimeout(()=>{
 
                            this.signingUp=false;
-                           this.$router.push('/login');
+                           this.$router.push('/dashboard');
                         },1000);
 
                    }).catch(err=>{

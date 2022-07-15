@@ -83,7 +83,6 @@
                            });
                        }
                    }).then(result=>{
-                       console.log(result);
                        localStorage.token=result.token;
                         setTimeout(()=>{
 
